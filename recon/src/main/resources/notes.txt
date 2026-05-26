@@ -1,0 +1,4 @@
+java -jar build/libs/recon-0.0.1-SNAPSHOT.jar 'job=temperatureSensorJob'
+
+
+https://github.com/kiryl-tech-prof/spring-batch-mastery/blob/main/first-batch-app/build.gradle
