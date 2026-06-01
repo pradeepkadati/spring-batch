@@ -1,0 +1,32 @@
+java -jar build/libs/recon-0.0.1-SNAPSHOT.jar 'job=temperatureSensorJob'
+
+
+https://github.com/kiryl-tech-prof/spring-batch-mastery/blob/main/first-batch-app/build.gradle
+
+./mongod --dbpath ~/mongo-data/db
+
+https://medium.com/@eddybayonne1/spring-batch-now-supports-nosql-mongodb-as-jobrepository-1278d459facd
+https://www.youtube.com/watch?v=vLw39E-pIiA&list=PLCMtYeD-JHQQNoj_ghxGeVXKKVie4OkxJ
+
+Job repo collections
+---------------------
+
+db.createCollection("BATCH_JOB_INSTANCE");
+db.createCollection("BATCH_JOB_EXECUTION");
+db.createCollection("BATCH_STEP_EXECUTION");
+
+// SEQUENCES
+db.createCollection("BATCH_SEQUENCES");
+db.getCollection("BATCH_SEQUENCES").insertOne({_id: "BATCH_JOB_INSTANCE_SEQ", count: Long(0)});
+db.getCollection("BATCH_SEQUENCES").insertOne({_id: "BATCH_JOB_EXECUTION_SEQ", count: Long(0)});
+db.getCollection("BATCH_SEQUENCES").insertOne({_id: "BATCH_STEP_EXECUTION_SEQ", count: Long(0)});
+
+
+db.getCollection("BATCH_JOB_INSTANCE").createIndex({ "jobName": 1 }, { name: "job_name_idx" });
+db.getCollection("BATCH_JOB_INSTANCE").createIndex({ "jobName": 1, "jobKey": 1 }, { name: "job_name_key_idx" });
+db.getCollection("BATCH_JOB_INSTANCE").createIndex({ "jobInstanceId": -1 }, { name: "job_instance_idx" });
+
+db.getCollection("BATCH_JOB_EXECUTION").createIndex({ "jobInstanceId": 1 }, { name: "job_instance_idx" });
+db.getCollection("BATCH_JOB_EXECUTION").createIndex({ "jobInstanceId": 1, "status": 1 }, { name: "job_instance_status_idx" });
+
+db.getCollection("BATCH_STEP_EXECUTION").createIndex({ "stepExecutionId": 1 }, { name: "step_execution_idx" });

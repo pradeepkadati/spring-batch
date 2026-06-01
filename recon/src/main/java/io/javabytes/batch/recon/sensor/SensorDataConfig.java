@@ -3,6 +3,7 @@ package io.javabytes.batch.recon.sensor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
@@ -16,7 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.WritableResource;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.data.mongodb.MongoTransactionManager;
 
 
 @Configuration
@@ -33,10 +34,11 @@ public class SensorDataConfig {
 
 
     @Bean
-    public Job temperatureSensorJob(JobRepository jobRepository,
+    public Job temperatureSensorJob(@Qualifier("mongoJobRepo") JobRepository jobRepository,
                                     @Qualifier("aggregateSensorStep") Step aggregateSensorStep,
                                     @Qualifier("reportAnomaliesStep") Step reportAnomaliesStep) {
         return new JobBuilder("temperatureSensorJob", jobRepository)
+                .incrementer(new RunIdIncrementer())
                 .start(aggregateSensorStep)
                 .next(reportAnomaliesStep)
                 .build();
@@ -53,9 +55,9 @@ public class SensorDataConfig {
     
     
     @Bean("aggregateSensorStep")
-    public Step aggregateSensorStep(JobRepository jobRepository, PlatformTransactionManager txManager) {
+    public Step aggregateSensorStep(@Qualifier("mongoJobRepo") JobRepository jobRepository, MongoTransactionManager txManager) {
         return new StepBuilder("aggregate-sensor", jobRepository)
-                .<DailySensorData,DailyAggregatedSensorData>chunk(1, txManager)
+                .<DailySensorData,DailyAggregatedSensorData>chunk(5, txManager)
                 .reader(sensorDataFilereader())
                 .processor(new RawToAggregateSensorDataProcessor())
                 .writer(new StaxEventItemWriterBuilder<DailyAggregatedSensorData>()
@@ -69,10 +71,10 @@ public class SensorDataConfig {
     }
 
     @Bean("reportAnomaliesStep")
-    public Step reportAnomaliesStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step reportAnomaliesStep(@Qualifier("mongoJobRepo") JobRepository jobRepository, MongoTransactionManager transactionManager) {
         return new StepBuilder("report-anomalies", jobRepository)
                 // Reading in chunks of size 1, item-by-item
-                .<DailyAggregatedSensorData, DataAnomaly>chunk(1, transactionManager)
+                .<DailyAggregatedSensorData, DataAnomaly>chunk(5, transactionManager)
                 // Reading from XML file re-using the same marshaller as for writing
                 .reader(new StaxEventItemReaderBuilder<DailyAggregatedSensorData>()
                         .name("dailyAggregatedSensorDataReader")

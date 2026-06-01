@@ -5,6 +5,8 @@ import java.util.Map;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -16,9 +18,11 @@ public class MultiJobRunner implements CommandLineRunner {
     private final JobLauncher jobLauncher;
     private final Map<String, Job> jobs; // Spring injects all Job beans here
 
-    public MultiJobRunner(JobLauncher jobLauncher, Map<String, Job> jobs) {
+
+    public MultiJobRunner(@Qualifier("mongoJonLauncher") JobLauncher jobLauncher, Map<String, Job> jobs ) {
         this.jobLauncher = jobLauncher;
         this.jobs = jobs;
+
     }
 
     @Override
@@ -42,7 +46,7 @@ public class MultiJobRunner implements CommandLineRunner {
         if (job != null) {
             System.out.println(">>> Launching Job: " + jobToRun);
             jobLauncher.run(job, new JobParametersBuilder()
-                    .addLong("time", System.currentTimeMillis())
+                    .addLong("id", Long.valueOf(2))
                     .toJobParameters());
         } else {
             System.out.println("Error: Job '" + jobToRun + "' not found.");
