@@ -22,6 +22,16 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	// S3-compatible client for NetApp StorageGRID buckets
+	implementation platform('software.amazon.awssdk:bom:2.29.52')
+	implementation 'software.amazon.awssdk:s3'
+
+	// SFTP upload of the enriched output file
+	implementation 'com.jcraft:jsch:0.1.55'
+
+	// RetryTemplate for transient S3/SFTP failures
+	implementation 'org.springframework.retry:spring-retry'
+
 	// spring oxm dependencies
 	// Source: https://mvnrepository.com/artifact/org.springframework/spring-oxm
 	implementation("org.springframework:spring-oxm")

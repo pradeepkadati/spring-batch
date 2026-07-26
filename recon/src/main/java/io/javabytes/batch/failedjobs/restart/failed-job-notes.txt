@@ -1,0 +1,7 @@
+Key design decisions worth noting
+JobExplorer reads straight from the BATCH_JOB_EXECUTION and BATCH_JOB_EXECUTION_PARAMS tables. 
+Because the original parameters are persisted there, you never need to reconstruct or guess them — buildRestartParams() copies them verbatim and only appends _retryCount.
+The guard that checks for STARTED / STARTING / STOPPING status before restarting is essential. 
+Without it, if a previous restart is still running when the next poll fires, you'd launch a duplicate — which JobLauncher will throw JobExecutionAlreadyRunningException for, but it's cleaner to skip proactively.
+spring.batch.job.enabled=false stops Spring Boot from launching all jobs automatically at startup, which you want off so only your poller controls execution timing.
+The _retryCount parameter doubles as both a safeguard (capped at max-retries) and a way to make each restart attempt a new, distinguishable execution in the repository without changing the meaningful business parameters.
